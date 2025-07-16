@@ -11,10 +11,11 @@ $(document).ready(function () {
         position: 'bottomright'
     }).addTo(map);
     var tileLayer = new L.tileLayer(
-        "https://api.myptv.com/rastermaps/v1/image-tiles/{z}/{x}/{y}?size={tileSize}&layers=background,transport,labels,toll",
+        "https://api.myptv.com/rastermaps/v1/image-tiles/{z}/{x}/{y}?size={tileSize}&layers=background,transport,labels,toll&referenceTime={referenceTime}",
         {
             attribution: "© " + new Date().getFullYear() + ", PTV Logistics, HERE",
             tileSize: 256,
+            referenceTime: getFormattedReferenceTime(),
             trackResize: false,
         },
         [
@@ -48,6 +49,28 @@ $(document).ready(function () {
         if (marker.options.icon.options.iconUrl === "./icons/marker-red.svg") {
             colorLastMarkerRed();
         }
+        fetchRoute();
+    }
+    function getFormattedReferenceTime() {
+        if (document.getElementById("referenceTime") && document.getElementById("referenceDate")) {
+            return new Date(document.getElementById('referenceDate').value + 'T' + document.getElementById('referenceTime').value).toISOString();
+        }
+        return new Date().toISOString();
+    }
+    function updateTileLayerAndFetchRoute() {
+        map.removeLayer(tileLayer);
+        tileLayer = new L.tileLayer(
+            "https://api.myptv.com/rastermaps/v1/image-tiles/{z}/{x}/{y}?size={tileSize}&layers=background,transport,labels,toll&referenceTime={referenceTime}",
+            {
+                attribution: "© " + new Date().getFullYear() + ", PTV Logistics, HERE",
+                tileSize: 256,
+                referenceTime: getFormattedReferenceTime(),
+                trackResize: false,
+            },
+            [
+                { header: "apiKey", value: api_key },
+            ]
+        ).addTo(map);
         fetchRoute();
     }
     function fetchRoute() {
@@ -231,8 +254,8 @@ $(document).ready(function () {
         document.getElementById("vehicleProfile").addEventListener("change", fetchRoute);
         document.getElementById("emissionStandard").addEventListener("change", fetchRoute);
         document.getElementById("engineType").addEventListener("change", fetchRoute);
-        document.getElementById("referenceTime").addEventListener("change", fetchRoute);
-        document.getElementById("referenceDate").addEventListener("change", fetchRoute);
+        document.getElementById("referenceTime").addEventListener("change", updateTileLayerAndFetchRoute);
+        document.getElementById("referenceDate").addEventListener("change", updateTileLayerAndFetchRoute);
         document.getElementById("currency").addEventListener("change", fetchRoute);
         document.getElementById("co2EmissionClass").addEventListener("change", fetchRoute);
     }
